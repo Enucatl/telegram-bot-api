@@ -1,3 +1,29 @@
+# Telegram Bot API Docker Image (Fork)
+
+This fork adds security hardening to run the Telegram Bot API in a constrained
+environment. It enables dropping all Linux capabilities except those required,
+properly exposing volumes for the working and temp directories, and using the
+`telegram-bot-api` `USER` directive to run the process as a non-root user.
+
+### Minimal secure compose example
+
+```yaml
+services:
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    user: "101"
+    cap_drop:
+      - ALL
+    volumes:
+      - telegram-bot-api-data:/var/lib/telegram-bot-api
+      - telegram-bot-api-temp:/tmp/telegram-bot-api
+    ports:
+      - "8081:8081"
+    environment:
+      TELEGRAM_API_ID: "<api-id>"
+      TELEGRAM_API_HASH: "<api-hash>"
+```
+
 # Unofficial Docker image of Telegram Bot API
 
 Here is Docker image for https://github.com/tdlib/telegram-bot-api
