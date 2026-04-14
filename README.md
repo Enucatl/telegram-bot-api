@@ -1,9 +1,9 @@
-# Telegram Bot API Docker Image (Fork)
+# What is this fork about?
 
-This fork adds security hardening to run the Telegram Bot API in a constrained
-environment. It enables dropping all Linux capabilities except those required,
-properly exposing volumes for the working and temp directories, and using the
-`telegram-bot-api` `USER` directive to run the process as a non-root user.
+- security hardening to run the Telegram Bot API in a constrained environment. It enables dropping all Linux capabilities.
+- exposes VOLUMEs
+- uses USER to run as nonroot (instead of starting as root and dropping inside the binary
+- has a HEALTHCHECK
 
 ### Minimal secure compose example
 
