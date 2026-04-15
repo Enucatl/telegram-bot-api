@@ -23,6 +23,8 @@ COPY --from=build /usr/src/telegram-bot-api/bin/telegram-bot-api /usr/local/bin/
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN addgroup -g 101 -S telegram-bot-api \
  && adduser -S -D -H -u 101 -h ${TELEGRAM_WORK_DIR} -s /sbin/nologin -G telegram-bot-api -g telegram-bot-api telegram-bot-api \
+ && mkdir -p ${TELEGRAM_WORK_DIR} ${TELEGRAM_TEMP_DIR} \
+ && chown -R telegram-bot-api:telegram-bot-api ${TELEGRAM_WORK_DIR} ${TELEGRAM_TEMP_DIR} \
  && chmod +x /docker-entrypoint.sh
 
 USER telegram-bot-api

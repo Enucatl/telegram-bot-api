@@ -12,11 +12,12 @@ services:
   telegram-bot-api:
     image: aiogram/telegram-bot-api:latest
     user: "101"
+    tmpfs:
+      - /tmp/telegram-bot-api:rw
     cap_drop:
       - ALL
     volumes:
       - telegram-bot-api-data:/var/lib/telegram-bot-api
-      - telegram-bot-api-temp:/tmp/telegram-bot-api
     ports:
       - "8081:8081"
     environment:
