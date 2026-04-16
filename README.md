@@ -1,5 +1,11 @@
-[![build: passing](https://img.shields.io/github/actions/workflow/status/Enucatl/telegram-bot-api/multiarch.yml?branch=main&label=build&logo=githubactions)](https://github.com/Enucatl/telegram-bot-api/actions/workflows/multiarch.yml)
-[![latest tag](https://img.shields.io/badge/ghcr.io%2Fenucatl%2Ftelegram--bot--api-latest-blue?logo=docker)](https://github.com/Enucatl/telegram-bot-api/pkgs/container/telegram-bot-api)
+<p>
+  <a href="https://github.com/Enucatl/telegram-bot-api/actions/workflows/multiarch.yml">
+    <img alt="build: passing" src="https://img.shields.io/github/actions/workflow/status/Enucatl/telegram-bot-api/multiarch.yml?branch=main&label=build&logo=githubactions">
+  </a>
+  <a href="https://github.com/Enucatl/telegram-bot-api/pkgs/container/telegram-bot-api">
+    <img alt="latest tag" src="https://img.shields.io/badge/ghcr.io%2Fenucatl%2Ftelegram--bot--api-latest-blue?logo=docker">
+  </a>
+</p>
 
 # What is this fork about?
 
