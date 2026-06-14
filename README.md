@@ -18,6 +18,7 @@
 - hardens the nginx file-serving example with read-only access to bot API data, a read-only root filesystem, dropped capabilities, bounded tmpfs mounts, connection/request limits, and download throttling while preserving support for large Telegram media files
 - builds entrypoint arguments as argv instead of a shell command string, preserving argument boundaries at `exec`
 - reduces build and CI exposure by ignoring local metadata/secrets in Docker build contexts and using explicit least-privilege GitHub Actions token permissions
+- runs vulnerability and configuration scanning in CI with Trivy: the maintained Dockerfile is scanned before publishing, the published image is scanned after push, SARIF results are uploaded to GitHub code scanning, and vendored upstream TDLib example files are excluded from the filesystem scan so the fork is judged on the Docker surface it maintains
 - has a HEALTHCHECK
 
 ### Minimal secure compose example
