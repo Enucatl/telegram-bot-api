@@ -2,23 +2,53 @@ services:
   api:
     image: aiogram/telegram-bot-api:latest
     restart: unless-stopped
+    user: "101"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 512m
+    tmpfs:
+      - /tmp/telegram-bot-api:rw,noexec,nosuid,nodev,size=256m
     environment:
-      TELEGRAM_API_ID: "XXX"
-      TELEGRAM_API_HASH: "YYY"
+      TELEGRAM_API_ID_FILE: /run/secrets/telegram_api_id
+      TELEGRAM_API_HASH_FILE: /run/secrets/telegram_api_hash
       #TELEGRAM_LOCAL: 1  # allow files >20mb
+    secrets:
+      - telegram_api_id
+      - telegram_api_hash
     volumes:
       - telegram-bot-api-data:/var/lib/telegram-bot-api
 
   nginx:
     image: nginx:1.27.3-alpine
     restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 128m
     depends_on:
       - api
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=32m
+      - /var/run:rw,noexec,nosuid,nodev,size=8m
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
     volumes:
-      - telegram-bot-api-data:/var/lib/telegram-bot-api
+      - telegram-bot-api-data:/var/lib/telegram-bot-api:ro
       - ./nginx:/etc/nginx/conf.d/
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:8080"
 
 volumes:
   telegram-bot-api-data:
+
+secrets:
+  telegram_api_id:
+    file: ./secrets/telegram_api_id
+  telegram_api_hash:
+    file: ./secrets/telegram_api_hash

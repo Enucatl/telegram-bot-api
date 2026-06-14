@@ -1,2 +1,10 @@
-./data
+.git
 .github
+.idea
+.vscode
+telegram-bot-api/build
+data
+example/secrets
+secrets
+.env
+*.log

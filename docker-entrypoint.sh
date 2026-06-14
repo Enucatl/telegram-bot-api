@@ -1,12 +1,8 @@
 #!/usr/bin/env sh
 set -e
 
-COMMAND="telegram-bot-api"
-
-# Appends an argument to the COMMAND variable.
-append_args() {
-  COMMAND="$COMMAND $1"
-}
+# Build argv directly so POSIX sh preserves argument boundaries at exec.
+set -- telegram-bot-api
 
 # Sets $env_var from $file_env_var content or directly from $env_var.
 file_env() {
@@ -40,24 +36,26 @@ check_required_env() {
   fi
 }
 
-append_arg_from_env() {
+arg_from_env() {
     var_name="$1"
     arg_name="$2"
     default_value="$3"
     env_value=$(printenv "$var_name") || env_value=""
+    ARG_VALUE=""
 
     [ -n "$env_value" ] || env_value="$default_value"
     if [ -n "$env_value" ]; then
-      append_args "${arg_name}=$env_value"
+      ARG_VALUE="${arg_name}=$env_value"
     fi
 }
 
-append_flag_from_env() {
+flag_from_env() {
   var_name="$1"
   flag_name="$2"
+  ARG_VALUE=""
 
   if [ -n "$(printenv "$var_name")" ]; then
-    append_args "$flag_name"
+    ARG_VALUE="$flag_name"
   fi
 }
 
@@ -66,23 +64,42 @@ check_required_env "TELEGRAM_WORK_DIR"
 file_env "TELEGRAM_API_ID" "TELEGRAM_API_ID_FILE"
 file_env "TELEGRAM_API_HASH" "TELEGRAM_API_HASH_FILE"
 
-append_arg_from_env "TELEGRAM_WORK_DIR" "--dir"
+arg_from_env "TELEGRAM_WORK_DIR" "--dir"
+set -- "$@" "$ARG_VALUE"
 check_required_env "TELEGRAM_TEMP_DIR"
-append_arg_from_env "TELEGRAM_TEMP_DIR" "--temp-dir"
+arg_from_env "TELEGRAM_TEMP_DIR" "--temp-dir"
+set -- "$@" "$ARG_VALUE"
 
 check_required_env "TELEGRAM_API_ID"
 check_required_env "TELEGRAM_API_HASH"
 
-append_arg_from_env "TELEGRAM_HTTP_PORT" "--http-port" "8081"
-append_flag_from_env "TELEGRAM_LOCAL" "--local"
-append_flag_from_env "TELEGRAM_STAT" "--http-stat-port=8082"
-append_arg_from_env "TELEGRAM_LOG_FILE" "--log"
-append_arg_from_env "TELEGRAM_FILTER" "--filter"
-append_arg_from_env "TELEGRAM_MAX_WEBHOOK_CONNECTIONS" "--max-webhook-connections"
-append_arg_from_env "TELEGRAM_VERBOSITY" "--verbosity"
-append_arg_from_env "TELEGRAM_MAX_CONNECTIONS" "--max-connections"
-append_arg_from_env "TELEGRAM_PROXY" "--proxy"
-append_arg_from_env "TELEGRAM_HTTP_IP_ADDRESS" "--http-ip-address"
+arg_from_env "TELEGRAM_HTTP_PORT" "--http-port" "8081"
+set -- "$@" "$ARG_VALUE"
 
-echo "$COMMAND"
-exec $COMMAND
+flag_from_env "TELEGRAM_LOCAL" "--local"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+
+if [ -n "$(printenv "TELEGRAM_STAT")" ]; then
+  arg_from_env "TELEGRAM_HTTP_STAT_PORT" "--http-stat-port" "8082"
+  set -- "$@" "$ARG_VALUE"
+  arg_from_env "TELEGRAM_HTTP_STAT_IP_ADDRESS" "--http-stat-ip-address" "127.0.0.1"
+  set -- "$@" "$ARG_VALUE"
+fi
+
+arg_from_env "TELEGRAM_LOG_FILE" "--log"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_FILTER" "--filter"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_MAX_WEBHOOK_CONNECTIONS" "--max-webhook-connections"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_VERBOSITY" "--verbosity"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_MAX_CONNECTIONS" "--max-connections"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_PROXY" "--proxy"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+arg_from_env "TELEGRAM_HTTP_IP_ADDRESS" "--http-ip-address"
+[ -z "$ARG_VALUE" ] || set -- "$@" "$ARG_VALUE"
+
+echo "Starting telegram-bot-api"
+exec "$@"
