@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_TAG: ghcr.io/enucatl/telegram-bot-api
-      ALPINE_VERSION: '3.21'
 
     steps:
       - name: Checkout current repo
@@ -63,5 +62,4 @@ jobs:
             ${{ env.IMAGE_TAG }}:latest
           platforms: linux/amd64
           build-args: |
-            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
             nproc=2
