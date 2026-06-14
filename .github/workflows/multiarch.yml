@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 jobs:
   build:
@@ -31,9 +32,45 @@ jobs:
           submodules: recursive
 
       - name: Get version
+        id: version
         run: |
           VERSION=$(cat telegram-bot-api/CMakeLists.txt | grep TelegramBotApi | cut -d " " -f3)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Scan filesystem with Trivy
+        id: fs_table
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@128d9a8815401077119ad09f6ca1892d422c387b
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "1"
+          scanners: config,secret
+          severity: HIGH,CRITICAL
+
+      - name: Write filesystem SARIF
+        uses: aquasecurity/trivy-action@128d9a8815401077119ad09f6ca1892d422c387b
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          exit-code: "0"
+          scanners: config,secret
+          severity: HIGH,CRITICAL
+
+      - name: Upload filesystem Trivy SARIF
+        if: always() && hashFiles('trivy-fs.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      - name: Enforce filesystem scan policy
+        if: ${{ steps.fs_table.outcome == 'failure' }}
+        run: exit 1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -63,3 +100,45 @@ jobs:
           platforms: linux/amd64
           build-args: |
             nproc=2
+
+      - name: Scan published image with Trivy
+        id: image_table
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@128d9a8815401077119ad09f6ca1892d422c387b
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          image-ref: ${{ env.IMAGE_TAG }}:${{ steps.version.outputs.version }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+
+      - name: Write image SARIF
+        uses: aquasecurity/trivy-action@128d9a8815401077119ad09f6ca1892d422c387b
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          image-ref: ${{ env.IMAGE_TAG }}:${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-image.sarif
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: os,library
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+
+      - name: Upload image Trivy SARIF
+        if: always() && hashFiles('trivy-image.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
+      - name: Enforce image scan policy
+        if: ${{ steps.image_table.outcome == 'failure' }}
+        run: exit 1
